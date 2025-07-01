@@ -52,3 +52,37 @@ input[type="text"] {
     border-radius: 4px;
     box-sizing: border-box;
 }
+
+    button {
+        padding: 10px 20px;
+        margin: 10px 5px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .btn-salvar {
+        background-color: #28a745;
+        color: #e6f4ea;
+    }
+    .btn-ver {
+        background-color: #28a745;
+        color: #e6f4ea;
+    }
+
+    #listaSalvos {
+        margin-top: 20px;
+        padding-left: 0;
+        list-style-type: none;
+    }
+
+    #listaSalvos li {
+        background-color: #e6f4ea;
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+

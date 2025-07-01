@@ -1,112 +1,186 @@
-<html>
+<!DOCTYPE html>
+<html lang="pt-br">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ViaCEP Webservice</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link href="cep.css" rel="stylesheet">
-
 
     <!-- Adicionando Javascript -->
     <script>
-
+        // Função para limpar o formulário
         function limpa_formulário_cep() {
-            //Limpa valores do formulário de cep.
-            document.getElementById('rua').value = ("");
-            document.getElementById('complemento').value = ("");
-            document.getElementById('bairro').value = ("");
-            document.getElementById('cidade').value = ("");
-            document.getElementById('uf').value = ("");
-            document.getElementById('ddd').value = ("");
+            document.getElementById('rua').value = "";
+            document.getElementById('complemento').value = "";
+            document.getElementById('bairro').value = "";
+            document.getElementById('cidade').value = "";
+            document.getElementById('uf').value = "";
+            document.getElementById('ddd').value = "";
         }
 
+        // Função para lidar com a resposta da consulta ao CEP
         function meu_callback(conteudo) {
             if (!("erro" in conteudo)) {
-                //Atualiza os campos com os valores.
-                document.getElementById('rua').value = (conteudo.logradouro);
-                document.getElementById('complemento').value = (conteudo.complemento);
-                document.getElementById('bairro').value = (conteudo.bairro);
-                document.getElementById('cidade').value = (conteudo.localidade);
-                document.getElementById('uf').value = (conteudo.uf);
-                document.getElementById('ddd').value = (conteudo.ddd);
-            } //end if.
-            else {
-                //CEP não Encontrado.
+                document.getElementById('rua').value = conteudo.logradouro;
+                document.getElementById('complemento').value = conteudo.complemento;
+                document.getElementById('bairro').value = conteudo.bairro;
+                document.getElementById('cidade').value = conteudo.localidade;
+                document.getElementById('uf').value = conteudo.uf;
+                document.getElementById('ddd').value = conteudo.ddd;
+            } else {
                 limpa_formulário_cep();
                 alert("CEP não encontrado.");
             }
         }
 
+        // Função para pesquisar o CEP
         function pesquisacep(valor) {
-
-            //Nova variável "cep" somente com dígitos.
             var cep = valor.replace(/\D/g, '');
-
-            //Verifica se campo cep possui valor informado.
             if (cep != "") {
-
-                //Expressão regular para validar o CEP.
                 var validacep = /^[0-9]{8}$/;
-
-                //Valida o formato do CEP.
                 if (validacep.test(cep)) {
-
-                    //Preenche os campos com "..." enquanto consulta webservice.
                     document.getElementById('rua').value = "...";
                     document.getElementById('complemento').value = "...";
                     document.getElementById('bairro').value = "...";
                     document.getElementById('cidade').value = "...";
                     document.getElementById('uf').value = "...";
                     document.getElementById('ddd').value = "...";
-
-                    //Cria um elemento javascript.
                     var script = document.createElement('script');
-
-                    //Sincroniza com o callback.
                     script.src = 'https://viacep.com.br/ws/' + cep + '/json/?callback=meu_callback';
-
-                    //Insere script no documento e carrega o conteúdo.
                     document.body.appendChild(script);
-
-                } //end if.
-                else {
-                    //cep é inválido.
+                } else {
                     limpa_formulário_cep();
                     alert("Formato de CEP inválido.");
                 }
-            } //end if.
-            else {
-                //cep sem valor, limpa formulário.
+            } else {
                 limpa_formulário_cep();
             }
-        };
+        }
+
+        // Função para salvar o formulário
+        function salvarFormulario() {
+            const dados = {
+                nome: document.getElementById('nome').value.trim(),
+                cep: document.getElementById('cep').value.trim(),
+                rua: document.getElementById('rua').value.trim(),
+                complemento: document.getElementById('complemento').value.trim(),
+                bairro: document.getElementById('bairro').value.trim(),
+                cidade: document.getElementById('cidade').value.trim(),
+                uf: document.getElementById('uf').value.trim(),
+                ddd: document.getElementById('ddd').value.trim()
+            };
+
+            if (dados.nome === "" || dados.cep === "") {
+                alert("Por favor, preencha o nome e o CEP.");
+                return;
+            }
+
+            let salvos = JSON.parse(localStorage.getItem("formulariosSalvos")) || [];
+            salvos.push(dados); // Adiciona novo formulário
+            localStorage.setItem("formulariosSalvos", JSON.stringify(salvos));
+            alert("Dados salvos com sucesso!");
+            limparFormulario();
+        }
+
+        // Função para listar os formulários salvos
+        function listarFormulariosSalvos() {
+            const lista = document.getElementById("listaSalvos");
+            lista.innerHTML = "";
+            let salvos = JSON.parse(localStorage.getItem("formulariosSalvos")) || [];
+
+            if (salvos.length === 0) {
+                lista.innerHTML = "<li>Nenhum dado salvo ainda.</li>";
+                return;
+            }
+
+            salvos.forEach(item => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <strong>Nome:</strong> ${item.nome} |
+                    <strong>CEP:</strong> ${item.cep} |
+                    <strong>Rua:</strong> ${item.rua} |
+                    <strong>Complemento:</strong> ${item.complemento} |
+                    <strong>Bairro:</strong> ${item.bairro} |
+                    <strong>Cidade:</strong> ${item.cidade} |
+                    <strong>UF:</strong> ${item.uf} |
+                    <strong>DDD:</strong> ${item.ddd}
+                `;
+                lista.appendChild(li);
+            });
+        }
+
+        // Função para mostrar os formulários salvos
+        function mostrarSalvos() {
+            listarFormulariosSalvos();
+            document.getElementById("listaSalvos").style.display = "block";
+            document.querySelector(".btn-ver").style.display = "none";
+            document.querySelector(".btn-salvar").style.display = "none";
+            document.getElementById("btnVoltar").style.display = "inline-block";
+            document.querySelector("form").style.display = "none";
+        }
+
+        // Função para voltar ao formulário
+        function voltarFormulario() {
+            document.getElementById("listaSalvos").style.display = "none";
+            document.querySelector(".btn-ver").style.display = "inline-block";
+            document.querySelector(".btn-salvar").style.display = "inline-block";
+            document.getElementById("btnVoltar").style.display = "none";
+            document.querySelector("form").style.display = "block";
+        }
+
+        // Função para limpar o formulário
+        function limparFormulario() {
+            document.getElementById('nome').value = "";
+            document.getElementById('cep').value = "";
+            document.getElementById('rua').value = "";
+            document.getElementById('complemento').value = "";
+            document.getElementById('bairro').value = "";
+            document.getElementById('cidade').value = "";
+            document.getElementById('uf').value = "";
+            document.getElementById('ddd').value = "";
+        }
 
     </script>
 </head>
 
 <body>
-
-    <!-- Inicio do formulario -->
+    <!-- Inicio do formulário -->
     <form method="get" action=".">
         <div class="container">
             <img src="ifpr.png" class="top-image">
             <h1 class="titulo">Consulta de CEP</h1>
 
+            <label>Nome:
+                <input name="nome" type="text" id="nome" value="" size="10" maxlength="9" onblur="pesquisacep(this.value);" />
+            </label><br />
             <label>Cep:
-                <input name="cep" type="text" id="cep" value="" size="10" maxlength="9"
-                    onblur="pesquisacep(this.value);" /></label><br />
+                <input name="cep" type="text" id="cep" value="" size="10" maxlength="9" onblur="pesquisacep(this.value);" />
+            </label><br />
             <label>Rua:
-                <input name="rua" type="text" id="rua" size="60" /></label><br />
+                <input name="rua" type="text" id="rua" size="60" />
+            </label><br />
             <label>Complemento:
-                <input name="complemento" type="text" id="complemento" size="40" /></label><br />
+                <input name="complemento" type="text" id="complemento" size="40" />
+            </label><br />
             <label>Bairro:
-                <input name="bairro" type="text" id="bairro" size="40" /></label><br />
+                <input name="bairro" type="text" id="bairro" size="40" />
+            </label><br />
             <label>Cidade:
-                <input name="cidade" type="text" id="cidade" size="40" /></label><br />
+                <input name="cidade" type="text" id="cidade" size="40" />
+            </label><br />
             <label>Estado:
-                <input name="uf" type="text" id="uf" size="2" /></label><br />
+                <input name="uf" type="text" id="uf" size="2" />
+            </label><br />
             <label>DDD:
-                <input name="ddd" type="text" id="ddd" size="8" /></label><br />
+                <input name="ddd" type="text" id="ddd" size="8" />
+            </label><br />
+            <button type="button" class="btn-salvar" onclick="salvarFormulario()">Salvar</button>
+            <button type="button" class="btn-ver" onclick="mostrarSalvos()">Ver Salvos</button>
+        </div>
     </form>
+
+    <ul id="listaSalvos"></ul>
 </body>
 
 </html>
